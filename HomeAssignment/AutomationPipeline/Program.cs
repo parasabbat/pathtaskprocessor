@@ -13,4 +13,4 @@ using IHost host = Host.CreateDefaultBuilder(args)
 
 var assayIngestor = host.Services.GetRequiredService<ITaskProcessor>();
 
-assayIngestor.DoWorkAsync();
+await assayIngestor.DoWorkAsync();

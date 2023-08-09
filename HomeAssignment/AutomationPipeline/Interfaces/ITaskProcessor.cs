@@ -8,6 +8,6 @@ namespace AutomationPipeline.Interfaces
 {
     public interface ITaskProcessor
     {
-        void DoWorkAsync();
+        Task DoWorkAsync();
     }
 }
