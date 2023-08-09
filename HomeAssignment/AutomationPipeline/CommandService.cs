@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace AutomationPipeline
 {
@@ -14,14 +15,14 @@ namespace AutomationPipeline
             return Task.CompletedTask;
         }
 
-        public Task FileCopy(string sourceFilePath, string destinationFilePath)
+        public void FileCopy(string sourceFilePath, string destinationFilePath)
         {
-            throw new NotImplementedException();
+            File.Copy(sourceFilePath, destinationFilePath, true);
         }
 
-        public Task FileDelete(string filePath)
+        public void FileDelete(string filePath)
         {
-            throw new NotImplementedException();
+            File.Delete(filePath);
         }
     }
 }
