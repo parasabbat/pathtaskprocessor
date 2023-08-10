@@ -9,7 +9,7 @@ namespace RefrigeratorApp.Repositories
 {
     public interface IProductRepository
     {
-        public Task<Product> AddProduct(Product product);
+        public Task<Product> AddUpdateProduct(Product product);
 
         public Task<List<Product>> GetProducts();
 

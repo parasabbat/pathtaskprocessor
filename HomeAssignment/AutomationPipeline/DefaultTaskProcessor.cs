@@ -4,6 +4,16 @@ namespace AutomationPipeline
 {
     public class DefaultTaskProcessor : ITaskProcessor
     {
+        private const string ConsoleBanner = @"
+        
+            ░█████╗░░█████╗░░██████╗░█████╗░██╗░░░░░███████╗
+            ██╔══██╗██╔══██╗██╔════╝██╔══██╗██║░░░░░██╔════╝
+            ██║░░╚═╝██║░░██║╚█████╗░██║░░██║██║░░░░░█████╗░░
+            ██║░░██╗██║░░██║░╚═══██╗██║░░██║██║░░░░░██╔══╝░░
+            ╚█████╔╝╚█████╔╝██████╔╝╚█████╔╝███████╗███████╗
+            ░╚════╝░░╚════╝░╚═════╝░░╚════╝░╚══════╝╚══════╝
+        ";
+       
         private readonly ICommandService _commandService;
         public DefaultTaskProcessor(ICommandService commandService) 
         {
@@ -11,6 +21,7 @@ namespace AutomationPipeline
         }
         public async Task DoWorkAsync()
         {
+            Console.WriteLine(ConsoleBanner);
             Console.WriteLine("Please Enter command Number of your choice from below \n");
             var availableCommands = new Dictionary<int, string>()
             {   

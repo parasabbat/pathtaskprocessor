@@ -15,9 +15,34 @@ namespace RefrigeratorApp.Repositories
         {
             _raContext = raContext;
         }
-        public async Task<Product> AddProduct(Product product)
+
+        public async Task<Product> AddUpdateProduct(Product product)
         {
-            _raContext.Products.Add(product);
+            Guid productId = Guid.Empty;
+            Product existingProduct = await _raContext.Products.FirstOrDefaultAsync(x => x.Name.Equals(product.Name));
+            if (existingProduct != null)
+            {
+                if(product.QuantityUnit != existingProduct.QuantityUnit)
+                {
+                    // raise exception
+                    throw new InvalidOperationException("Quantity Unit should be same");
+                }
+                else
+                {
+                    productId = existingProduct.Id;
+                    existingProduct.CurrentQuantity = existingProduct.CurrentQuantity + product.CurrentQuantity;
+                    _raContext.Entry(existingProduct).State = EntityState.Modified;
+                }
+            }
+            else
+            {
+                productId  = Guid.NewGuid();
+                product.Id = productId;
+                _raContext.Products.Add(product);
+            }
+
+            // add to product log
+            _raContext.ProductLogs.Add(new ProductLog(productId: productId, quantity: product.CurrentQuantity, quantityUnit: product.QuantityUnit));
             await _raContext.SaveChangesAsync();
             return product;
         }
