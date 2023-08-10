@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RefrigeratorApp;
 
@@ -10,9 +11,11 @@ using RefrigeratorApp;
 namespace RefrigeratorApp.Migrations
 {
     [DbContext(typeof(RaContext))]
-    partial class RaContextModelSnapshot : ModelSnapshot
+    [Migration("20230810155011_updateproducttableschema")]
+    partial class updateproducttableschema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.10");
@@ -42,7 +45,7 @@ namespace RefrigeratorApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("ExpiryDate")
+                    b.Property<DateTimeOffset?>("ExpiryDate")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ProductId")
@@ -53,20 +56,7 @@ namespace RefrigeratorApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
-
                     b.ToTable("ProductInventoryLogs");
-                });
-
-            modelBuilder.Entity("RefrigeratorApp.Entities.ProductInventoryLog", b =>
-                {
-                    b.HasOne("RefrigeratorApp.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
                 });
 #pragma warning restore 612, 618
         }

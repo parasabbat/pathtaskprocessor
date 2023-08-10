@@ -9,10 +9,13 @@ namespace RefrigeratorApp.Repositories
 {
     public interface IProductRepository
     {
-        public Task<Product> AddUpdateProduct(Product product);
+        public Task<Product> InsertProduct(Product product);
 
-        public Task<List<Product>> GetProducts();
+        public Task<Product> ConsumeProduct(Product product);
 
-        public Task<Product> GetProductById(Guid id);
+        public Task<List<Product>> GetNearExpiryProducts();
+
+        public Task<List<Product>> GetExpiriedProductsAndRemove();
+   
     }
 }

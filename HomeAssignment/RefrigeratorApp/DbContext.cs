@@ -10,7 +10,7 @@ namespace RefrigeratorApp
 
         }
         public DbSet<Product> Products { get; set; }
-        public DbSet<ProductLog> ProductLogs { get; set; }
+        public DbSet<ProductInventoryLog> ProductInventoryLogs { get; set; }
     }
 }
 
