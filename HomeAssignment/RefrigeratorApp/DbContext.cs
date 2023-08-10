@@ -5,7 +5,6 @@ namespace RefrigeratorApp
 {
     public class RaContext : DbContext
     {
-
         public RaContext(DbContextOptions<RaContext> options) : base(options)
         {
 

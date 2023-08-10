@@ -17,10 +17,10 @@ using IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
     {
         services
-            .AddSingleton(Configuration)
-        .AddSingleton<ITaskProcessor, DefaultTaskProcessor>()
+        .AddSingleton(Configuration)
+        .AddScoped<ITaskProcessor, DefaultTaskProcessor>()
         .AddDbContext<RaContext>(options => options.UseSqlite(Configuration.GetConnectionString("WebApiDatabase")))
-        .AddSingleton<IProductRepository, ProductRepository>();
+        .AddScoped<IProductRepository, ProductRepository>();
     }).Build();
 
 var assayIngestor = host.Services.GetRequiredService<ITaskProcessor>();
