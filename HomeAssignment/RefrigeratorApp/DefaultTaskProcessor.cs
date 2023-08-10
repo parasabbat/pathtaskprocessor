@@ -67,7 +67,7 @@ namespace RefrigeratorApp
                     }
                     Console.WriteLine("Quantity Unit \n");
                     string? quantityUnit = Console.ReadLine();
-                    await _productRepository.InsertProduct(new Entities.Product() { Name = itemName, QuantityUnit = quantityUnit, Quantity = quantity, ExpiryDate = expiryDate });
+                    string errorMessage = await _productRepository.InsertProduct(new Entities.ProductMaster() { Name = itemName, QuantityUnit = quantityUnit, Quantity = quantity, ExpiryDate = expiryDate });
                     break;
                 case 2: // Consume Item
                     Console.WriteLine("Please enter Item Name \n");
@@ -78,10 +78,14 @@ namespace RefrigeratorApp
                         Console.Write("Invalid Input,Please input again \n");
                     }
                     expiryDate = DateTime.MaxValue;
-
+                    Console.WriteLine("Expiry date in MM/dd/yy format \n");
+                    while (!DateTime.TryParse(Console.ReadLine(), out expiryDate))
+                    {
+                        Console.Write("Invalid Input,Please input again \n");
+                    }
                     Console.WriteLine("Quantity Unit \n");
                     quantityUnit = Console.ReadLine();
-                    await _productRepository.ConsumeProduct(new Entities.Product() { Name = itemName, QuantityUnit = quantityUnit, Quantity = quantity, ExpiryDate = expiryDate });
+                    await _productRepository.ConsumeProduct(new Entities.ProductMaster() { Name = itemName, QuantityUnit = quantityUnit, Quantity = quantity, ExpiryDate = expiryDate });
                     break;
             }
 
@@ -92,7 +96,7 @@ namespace RefrigeratorApp
 
         public async Task ManageNearExpiryProducts()
         {
-            List<Product> nearExpiryProducts = await _productRepository.GetNearExpiryProducts();
+            List<ProductMaster> nearExpiryProducts = await _productRepository.GetNearExpiryProducts();
             if (nearExpiryProducts.Count > 0)
             {
                 Console.WriteLine($"{nearExpiryProducts.Count} product/products is/are near Expiry, Please consume them as soon as Possible!");
@@ -106,7 +110,7 @@ namespace RefrigeratorApp
 
         public async Task ManageExpiriedProducts()
         {
-            List<Product> exipriedProducts = await _productRepository.GetExpiriedProductsAndRemove();
+            List<ProductMaster> exipriedProducts = await _productRepository.GetExpiriedProductsAndRemove();
             if (exipriedProducts.Count > 0)
             {
                 Console.WriteLine($"{exipriedProducts.Count} product/products have expired , Please remove them from refrigerator!");

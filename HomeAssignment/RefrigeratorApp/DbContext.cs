@@ -9,8 +9,10 @@ namespace RefrigeratorApp
         {
 
         }
+        public DbSet<ProductMaster> ProductMaster { get; set; }
         public DbSet<Product> Products { get; set; }
-        public DbSet<ProductInventoryLog> ProductInventoryLogs { get; set; }
+
+        public DbSet<ProductLog> ProductLogs { get; set; }
     }
 }
 

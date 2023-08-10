@@ -16,104 +16,113 @@ namespace RefrigeratorApp.Repositories
             _raContext = raContext;
         }
 
-        public async Task<Product> InsertProduct(Product product)
+        private async Task AddProductLog(Guid productId, double quantity)
         {
-            Guid productId = Guid.Empty;
-            Product existingProduct = await _raContext.Products.FirstOrDefaultAsync(x => x.Name.Equals(product.Name));
-            if (existingProduct != null)
+            await _raContext.ProductLogs.AddAsync(new ProductLog() { Id = Guid.NewGuid(), ProductId = productId, Quantity = quantity, EventTimeStamp = DateTime.Now });
+            await _raContext.SaveChangesAsync();
+        }
+
+        private async Task<ProductMaster> ManageProductMaster(ProductMaster productMaster)
+        {
+            ProductMaster existingProduct = await _raContext.ProductMaster.FirstOrDefaultAsync(x => x.Name.Equals(productMaster.Name));
+            if (existingProduct == null)
             {
-                if(product.QuantityUnit != existingProduct.QuantityUnit)
-                {
-                    // raise exception
-                    throw new InvalidOperationException("Quantity Unit should be same");
-                }
-                else
-                {
-                    productId = existingProduct.Id;
-                    _raContext.Entry(existingProduct).State = EntityState.Modified;
-                }
+                productMaster.Id = Guid.NewGuid();
+                _raContext.ProductMaster.Add(productMaster);
+                await _raContext.SaveChangesAsync();
+                return productMaster;
+            }
+            return existingProduct;
+        }
+
+
+
+        public async Task<string> InsertProduct(ProductMaster productMaster)
+        {
+            ProductMaster existingproductMaster = await ManageProductMaster(productMaster);
+
+            Product existingProduct = await _raContext.Products.FirstOrDefaultAsync(x => x.ProductId.Equals(existingproductMaster.Id)
+                                                                    && x.ExpiryDate.Value.Date.Equals(productMaster.ExpiryDate.Value.Date));
+            if (existingProduct == null)
+            {
+                // add to product log
+                _raContext.Products.Add(new Product(productId: existingproductMaster.Id, quantity: productMaster.Quantity, expiryDate: productMaster.ExpiryDate));
             }
             else
             {
-                productId  = Guid.NewGuid();
-                product.Id = productId;
-                _raContext.Products.Add(product);
+                existingProduct.Quantity += productMaster.Quantity;
+                _raContext.Entry(existingProduct).State = EntityState.Modified;
             }
-
-            // add to product log
-            _raContext.ProductInventoryLogs.Add(new ProductInventoryLog(productId: productId, quantity: product.Quantity,expiryDate: product.ExpiryDate));
+            await AddProductLog(existingproductMaster.Id, productMaster.Quantity);
             await _raContext.SaveChangesAsync();
-            return product;
+            return string.Empty;
         }
 
-        public async Task<Product> ConsumeProduct(Product product)
+        public async Task<string> ConsumeProduct(ProductMaster productMaster)
         {
-            Guid productId = Guid.Empty;
-            Product existingProduct = await _raContext.Products.FirstOrDefaultAsync(x => x.Name.Equals(product.Name));
-            if (existingProduct != null)
+            ProductMaster existingproductMaster = await ManageProductMaster(productMaster);
+
+            Product existingProduct = await _raContext.Products.FirstOrDefaultAsync(x => x.ProductId.Equals(existingproductMaster.Id)
+                                                                    && x.ExpiryDate.Value.Date.Equals(productMaster.ExpiryDate.Value.Date));
+            if (existingProduct == null)
             {
-                if (product.QuantityUnit != existingProduct.QuantityUnit)
-                {
-                    // raise exception
-                    throw new InvalidOperationException("Quantity Unit should be same");
-                }
-                else
-                {
-                    productId = existingProduct.Id;
-                    _raContext.Entry(existingProduct).State = EntityState.Modified;
-                }
+                // add to product log
+                _raContext.Products.Add(new Product(productId: existingproductMaster.Id, quantity: productMaster.Quantity, expiryDate: productMaster.ExpiryDate));
             }
             else
             {
-                productId = Guid.NewGuid();
-                product.Id = productId;
-                _raContext.Products.Add(product);
+                if (productMaster.Quantity > existingProduct.Quantity)
+                {
+                    return "Can not consume more quantity than avaiable";
+                }
+                existingProduct.Quantity = existingProduct.Quantity - productMaster.Quantity;
+                _raContext.Entry(existingProduct).State = EntityState.Modified;
             }
-
-            // add to product log
-            _raContext.ProductInventoryLogs.Add(new ProductInventoryLog(productId: productId, quantity: product.Quantity, expiryDate: product.ExpiryDate));
+            await AddProductLog(existingproductMaster.Id, productMaster.Quantity);
             await _raContext.SaveChangesAsync();
-            return product;
+            return string.Empty;
         }
 
-        public async Task<List<Product>> GetExpiriedProductsAndRemove()
+        public async Task<List<ProductMaster>> GetExpiriedProductsAndRemove()
         {
-            var x = await _raContext.ProductInventoryLogs.ToListAsync();
-            var products = await(from i in _raContext.ProductInventoryLogs
-                                 join p in _raContext.Products
-                                 on i.ProductId equals p.Id
-                                 where i.ExpiryDate.HasValue && i.ExpiryDate.Value.Date <= DateTime.Now.Date
-                                 select new Product()
-                                 {
-                                     InventoryLogId = i.Id,
-                                     Name = p.Name,
-                                     Quantity = i.Quantity,
-                                     QuantityUnit = p.QuantityUnit,
-                                     ExpiryDate = i.ExpiryDate
-                                 }).ToListAsync();
+            var x = await _raContext.Products.ToListAsync();
+            var products = await (from i in _raContext.Products
+                                  join p in _raContext.ProductMaster
+                                  on i.ProductId equals p.Id
+                                  where i.ExpiryDate.HasValue && i.ExpiryDate.Value.Date <= DateTime.Now.Date
+                                  select new ProductMaster()
+                                  {
+                                      InventoryLogId = i.Id,
+                                      Name = p.Name,
+                                      Quantity = i.Quantity,
+                                      QuantityUnit = p.QuantityUnit,
+                                      ExpiryDate = i.ExpiryDate
+                                  }).ToListAsync();
             foreach (var product in products)
             {
-                ProductInventoryLog productInventoryLog = await _raContext.ProductInventoryLogs.FindAsync(product.InventoryLogId);
-                _raContext.ProductInventoryLogs.Remove(productInventoryLog);
+                Product productInventoryLog = await _raContext.Products.FindAsync(product.InventoryLogId);
+                _raContext.Products.Remove(productInventoryLog);
             }
             await _raContext.SaveChangesAsync();
             return products;
         }
 
-        public async Task<List<Product>> GetNearExpiryProducts()
+        public async Task<List<ProductMaster>> GetNearExpiryProducts()
         {
-            var products =await (from i in _raContext.ProductInventoryLogs
-                          join p in _raContext.Products
-                          on i.ProductId equals p.Id
-                          where i.ExpiryDate.HasValue && i.ExpiryDate.Value.Date == DateTime.Now.Date.AddDays(1)
-                                 select new Product()
-                          {
-                              Name = p.Name,
-                              Quantity=  i.Quantity,
-                              QuantityUnit= p.QuantityUnit,
-                              ExpiryDate =i.ExpiryDate
-                          }).ToListAsync();
+            var products = await (from i in _raContext.Products
+                                  join p in _raContext.ProductMaster
+                                  on i.ProductId equals p.Id
+                                  where i.ExpiryDate.HasValue && i.ExpiryDate.Value.Date == DateTime.Now.Date.AddDays(1)
+                                  select new ProductMaster()
+                                  {
+                                      Name = p.Name,
+                                      Quantity = i.Quantity,
+                                      QuantityUnit = p.QuantityUnit,
+                                      ExpiryDate = i.ExpiryDate
+                                  }).ToListAsync();
             return products;
         }
-    } 
+
+
+    }
 }
