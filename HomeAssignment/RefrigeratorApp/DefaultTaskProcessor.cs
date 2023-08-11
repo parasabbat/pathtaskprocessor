@@ -46,7 +46,7 @@ namespace RefrigeratorApp
             }
 
             Console.WriteLine($"You have selected {availableCommands[selectedCommand]} Operation");
-
+            string errorMessage = string.Empty;
             switch (selectedCommand)
             {
                 case 1: // Insert Item
@@ -67,7 +67,7 @@ namespace RefrigeratorApp
                     }
                     Console.WriteLine("Quantity Unit \n");
                     string? quantityUnit = Console.ReadLine();
-                    string errorMessage = await _productRepository.InsertProduct(new Entities.ProductMaster() { Name = itemName, QuantityUnit = quantityUnit, Quantity = quantity, ExpiryDate = expiryDate });
+                    errorMessage = await _productRepository.InsertProduct(new Entities.ProductMaster() { Name = itemName, QuantityUnit = quantityUnit, Quantity = quantity, ExpiryDate = expiryDate });
                     break;
                 case 2: // Consume Item
                     Console.WriteLine("Please enter Item Name \n");
@@ -85,10 +85,13 @@ namespace RefrigeratorApp
                     }
                     Console.WriteLine("Quantity Unit \n");
                     quantityUnit = Console.ReadLine();
-                    await _productRepository.ConsumeProduct(new Entities.ProductMaster() { Name = itemName, QuantityUnit = quantityUnit, Quantity = quantity, ExpiryDate = expiryDate });
+                    errorMessage = await _productRepository.ConsumeProduct(new Entities.ProductMaster() { Name = itemName, QuantityUnit = quantityUnit, Quantity = quantity, ExpiryDate = expiryDate });
                     break;
             }
-
+            if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Console.WriteLine(errorMessage);
+            }
             await Task.Delay(100);
             Console.WriteLine("\nPress any key to exit!");
             Console.ReadKey();

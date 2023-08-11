@@ -66,8 +66,7 @@ namespace RefrigeratorApp.Repositories
                                                                     && x.ExpiryDate.Value.Date.Equals(productMaster.ExpiryDate.Value.Date));
             if (existingProduct == null)
             {
-                // add to product log
-                _raContext.Products.Add(new Product(productId: existingproductMaster.Id, quantity: productMaster.Quantity, expiryDate: productMaster.ExpiryDate));
+                return "This product is not avaiable!please insert first";
             }
             else
             {
@@ -85,7 +84,6 @@ namespace RefrigeratorApp.Repositories
 
         public async Task<List<ProductMaster>> GetExpiriedProductsAndRemove()
         {
-            var x = await _raContext.Products.ToListAsync();
             var products = await (from i in _raContext.Products
                                   join p in _raContext.ProductMaster
                                   on i.ProductId equals p.Id
